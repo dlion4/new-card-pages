@@ -31,13 +31,15 @@ import {
   type SpendPolicy,
   type Txn,
 } from "./data";
+import { useCardsNavigate, type CardsPageId, pathToCardsPage } from "./lib/routes";
+import { useRouterState } from "@tanstack/react-router";
 import { Icon, type IconName } from "./icons";
 import { cn } from "./utils/cn";
 import { kes } from "./data";
 
 /* ---------------- types ---------------- */
 
-export type PageId = "5.1" | "5.2" | "5.3" | "5.4" | "5.5" | "5.6" | "5.7" | "5.8" | "5.9" | "5.10";
+export type PageId = CardsPageId;
 
 export type ModalState =
   | { type: "alerts"; cardId?: string }
@@ -163,13 +165,30 @@ function loadPersisted(): Persisted | null {
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const persisted = useRef(loadPersisted());
+  const navigateTo = useCardsNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // Derive page from URL
+  const [page, setPageState] = useState<CardsPageId>(() => pathToCardsPage(pathname));
+
+  // Keep page in sync with URL
+  useEffect(() => {
+    setPageState(pathToCardsPage(pathname));
+  }, [pathname]);
+
+  const setPage = useCallback(
+    (p: CardsPageId) => {
+      setPageState(p);
+      navigateTo(p);
+    },
+    [navigateTo]
+  );
 
   const [cards, setCards] = useState<PmCard[]>(() =>
     SEED_CARDS.map((c) => (persisted.current?.cardStatus?.[c.id] ? { ...c, status: persisted.current.cardStatus[c.id] } : c))
   );
   const [txns, setTxns] = useState<Txn[]>(SEED_TXNS);
   const [alerts, setAlerts] = useState<AlertPrefs>(persisted.current?.alerts ?? SEED_ALERTS);
-  const [page, setPage] = useState<PageId>("5.10");
   const [creditLine, setCreditLine] = useState<CreditLine>(SEED_CREDIT_LINE);
   const [creditTxns] = useState<CreditTxn[]>(SEED_CREDIT_TXNS);
   const [repayments, setRepayments] = useState<Repayment[]>(SEED_REPAYMENTS);
