@@ -3,6 +3,7 @@ import {
   createRootRoute,
   createRoute,
   redirect,
+  Outlet,
 } from "@tanstack/react-router";
 import CardsShell from "./CardsShell";
 
@@ -37,7 +38,7 @@ import SettingsPage from "./routes/cards/settings";
  * ========================================================================= */
 
 const rootRoute = createRootRoute({
-  component: () => null,
+  component: () => <Outlet />,
 });
 
 const indexRoute = createRoute({
@@ -50,10 +51,10 @@ const indexRoute = createRoute({
 
 const cardsLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
-  id: "cards-layout",
   path: "/cards",
   component: CardsShell,
 });
+
 
 const cardsIndexRoute = createRoute({
   getParentRoute: () => cardsLayoutRoute,
